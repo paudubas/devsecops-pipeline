@@ -204,6 +204,12 @@ jobs:
           target: 'http://localhost:8000'
           cmd_options: '-J report_json.json -w report_md.md -r report_html.html'
           allow_issue_writing: false
+      - name: Verify OWASP ZAP Report Exists
+        run: |
+          if [ ! -f report_html.html ]; then
+            echo "Error: OWASP ZAP report not found!"
+            exit 1
+          fi
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
