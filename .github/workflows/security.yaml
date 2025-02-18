@@ -131,9 +131,15 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
+      - name: Install Gitleaks
+        run: |
+          curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64.tar.gz
+          tar -xzf gitleaks.tar.gz
+          chmod +x gitleaks
+          sudo mv gitleaks /usr/local/bin/gitleaks
+          gitleaks version
       - name: Run Secrets Detection (GitLeaks)
         run: |
-          curl -sSL -o gitleaks https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 && chmod +x gitleaks && mv gitleaks /usr/local/bin/
           gitleaks detect --source . --report-path=gitleaks-report.json || true
         
       - name: Upload GitLeaks Report
