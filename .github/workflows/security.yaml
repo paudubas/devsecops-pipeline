@@ -34,16 +34,25 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - name: Install Checkov
+      - name: Install Terraform
         run: |
-          pip install checkov
+          sudo apt-get update && sudo apt-get install -y unzip
+          curl -sSL -o terraform.zip https://releases.hashicorp.com/terraform/1.3.5/terraform_1.3.5_linux_amd64.zip
+          unzip terraform.zip
+          sudo mv terraform /usr/local/bin/
+          terraform --version
+      - name: Terraform Init
+        run: |
+          cd terraform
+          terraform init
+      - name: Terraform Validate
+        run: |
+          cd terraform
+          terraform validate
       - name: Run IaC Security Scan
         run: |
-          checkov -d . --output cli --output-file-path iac-security-report.txt || true
+          pip install checkov
+          checkov -d terraform --output cli --output-file-path iac-security-report.txt || true
       - name: Upload IaC Security Report
         uses: actions/upload-artifact@v4
         with:
@@ -57,7 +66,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Run Secrets Detection (GitLeaks)
         run: |
-          pip install gitleaks
+          curl -sSL -o gitleaks https://github.com/gitleaks/gitleaks/releases/latest/download/gitleaks-linux-amd64 && chmod +x gitleaks && mv gitleaks /usr/local/bin/
           gitleaks detect --source . --report-path=gitleaks-report.json || true
         
       - name: Upload GitLeaks Report
@@ -65,6 +74,7 @@ jobs:
         with:
           name: gitleaks-report
           path: gitleaks-report.json
+
   sast:
     runs-on: ubuntu-latest
     steps:
