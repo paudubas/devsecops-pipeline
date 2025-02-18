@@ -63,38 +63,49 @@ jobs:
           name: dependency-check-report
           path: dependency-check-report.txt
 
+  
   iac:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
+
       - name: Install Terraform
         run: |
           sudo apt-get update && sudo apt-get install -y unzip
           curl -sSL -o terraform.zip https://releases.hashicorp.com/terraform/1.3.5/terraform_1.3.5_linux_amd64.zip
-          rm -rf terraform  # Remove any existing terraform directory
+          rm -rf terraform  # Ensure any previous terraform directory is removed
           unzip terraform.zip  # Unzip the terraform binary
           sudo mv terraform /usr/local/bin/  # Move it to the proper location
           terraform --version  # Verify installation
-      - name: Install Checkov
+
+      - name: Create Terraform directory (if missing)
         run: |
-          pip install checkov
+          mkdir -p terraform  # Make sure the terraform directory exists
+          cd terraform
+
       - name: Terraform Init
         run: |
           cd terraform
           terraform init
+
       - name: Terraform Validate
         run: |
           cd terraform
           terraform validate
+
       - name: Run IaC Security Scan
         run: |
+          pip install checkov
           checkov -d terraform --output cli --output-file-path iac-security-report.txt || true
+
       - name: Upload IaC Security Report
         uses: actions/upload-artifact@v4
         with:
           name: iac-security-report
           path: iac-security-report.txt
+
+
   secrets:
     runs-on: ubuntu-latest
     steps:
