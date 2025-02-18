@@ -63,7 +63,7 @@ jobs:
           name: dependency-check-report
           path: dependency-check-report.txt
 
-  iiac:
+  iac:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
