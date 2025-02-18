@@ -23,7 +23,9 @@ jobs:
         run: |
           bandit -r . -f html -o bandit-report.html || true
       - name: Upload Bandit Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 7
         with:
           name: bandit-report
           path: bandit-report.html
@@ -45,7 +47,9 @@ jobs:
           output: 'owasp-zap-report.html'
           fail_action: 'true'
       - name: Upload ZAP Report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
+        with:
+          retention-days: 7
         with:
           name: owasp-zap-report
           path: owasp-zap-report.html
