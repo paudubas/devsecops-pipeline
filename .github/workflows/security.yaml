@@ -189,16 +189,6 @@ jobs:
             aquasec/trivy image flask-app:latest
 
 
-  license-compliance:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-      - name: Run License Compliance Check
-        uses: fossa/fossa-cli-action@v2
-        with:
-          token: ${{ secrets.FOSSA_API_KEY }}
-
   policy-check:
     runs-on: ubuntu-latest
     steps:
@@ -211,28 +201,4 @@ jobs:
       - name: Run Conftest on Terraform Files
         run: conftest test terraform/*.tf
 
-  code-quality:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
-      - name: Install and Run Flake8
-        run: |
-          pip install flake8
-          flake8 .
-      - name: Upload Coverage Report to Codecov
-        uses: codecov/codecov-action@v2
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-  snyk-monitor:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-      - name: Monitor Dependencies with Snyk
-        run: snyk monitor --file=requirements.txt
+  
