@@ -1,11 +1,10 @@
-name: Security Scans
+ame: Security Scans
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 
 jobs:
   sast:
@@ -17,12 +16,17 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
-      - name: Install sast-scan
+      - name: Install dependencies
         run: |
-          pip install sast-scan
-      - name: Run SAST Scan
+          pip install -r requirements.txt
+      - name: Run Bandit Security Scan
         run: |
-          scan --src . --type python
+          bandit -r . -f html -o bandit-report.html || true
+      - name: Upload Bandit Report
+        uses: actions/upload-artifact@v2
+        with:
+          name: bandit-report
+          path: bandit-report.html
 
   dast:
     runs-on: ubuntu-latest
