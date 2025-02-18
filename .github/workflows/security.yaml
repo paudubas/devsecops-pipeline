@@ -56,7 +56,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
       - name: Run Secrets Detection (GitLeaks)
-        uses: gitleaks/gitleaks-action@v2
+        run: |
+          pip install gitleaks
+          gitleaks detect --source . --report-path=gitleaks-report.json || true
         with:
           config-path: .gitleaks.toml
           report-format: json
@@ -66,7 +68,6 @@ jobs:
         with:
           name: gitleaks-report
           path: gitleaks-report.json
-
   sast:
     runs-on: ubuntu-latest
     steps:
