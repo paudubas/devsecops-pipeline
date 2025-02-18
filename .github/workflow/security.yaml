@@ -6,6 +6,7 @@ on:
   pull_request:
     branches: [ main ]
 
+
 jobs:
   sast:
     runs-on: ubuntu-latest
