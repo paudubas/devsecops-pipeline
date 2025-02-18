@@ -7,6 +7,66 @@ on:
     branches: [ main ]
 
 jobs:
+    sca:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip && pip install -r requirements.txt
+      - name: Run Dependency Check (SCA)
+        run: |
+          pip install safety
+          safety check --full-report > dependency-check-report.txt || true
+      - name: Upload Dependency Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: dependency-check-report.txt
+
+  iac:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install Checkov
+        run: |
+          pip install checkov
+      - name: Run IaC Security Scan
+        run: |
+          checkov -d . --output cli --output-file-path iac-security-report.txt || true
+      - name: Upload IaC Security Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: iac-security-report
+          path: iac-security-report.txt
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Run Secrets Detection (GitLeaks)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config-path: .gitleaks.toml
+          report-format: json
+          report-path: gitleaks-report.json
+      - name: Upload GitLeaks Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+ 
   sast:
     runs-on: ubuntu-latest
     steps:
