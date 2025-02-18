@@ -7,6 +7,40 @@ on:
     branches: [ main ]
 
 jobs:
+  gates:
+    runs-on: ubuntu-latest
+    needs: [sca, iac, secrets, sast, dast]
+    steps:
+      - name: Check SCA Report
+        run: |
+          if grep -q "HIGH" dependency-check-report.txt; then
+            echo "High severity dependencies found! Failing the pipeline."
+            exit 1
+          fi
+      - name: Check IaC Security Report
+        run: |
+          if grep -q "FAILED" iac-security-report.txt; then
+            echo "Infrastructure as Code security issues detected! Failing the pipeline."
+            exit 1
+          fi
+      - name: Check Secrets Report
+        run: |
+          if [ -s gitleaks-report.json ]; then
+            echo "Secrets detected in the codebase! Failing the pipeline."
+            exit 1
+          fi
+      - name: Check SAST Report
+        run: |
+          if grep -q "HIGH" bandit-report.html; then
+            echo "Critical vulnerabilities found in code! Failing the pipeline."
+            exit 1
+          fi
+      - name: Check DAST Report
+        run: |
+          if grep -q "WARN" owasp-zap-report.html; then
+            echo "DAST found warnings! Consider fixing."
+            exit 1
+          fi
   sca:
     runs-on: ubuntu-latest
     steps:
@@ -29,7 +63,7 @@ jobs:
           name: dependency-check-report
           path: dependency-check-report.txt
 
-  iac:
+  iiac:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -41,6 +75,9 @@ jobs:
           unzip terraform.zip
           sudo mv terraform /usr/local/bin/
           terraform --version
+      - name: Install Checkov
+        run: |
+          pip install checkov
       - name: Terraform Init
         run: |
           cd terraform
@@ -51,14 +88,12 @@ jobs:
           terraform validate
       - name: Run IaC Security Scan
         run: |
-          pip install checkov
           checkov -d terraform --output cli --output-file-path iac-security-report.txt || true
       - name: Upload IaC Security Report
         uses: actions/upload-artifact@v4
         with:
           name: iac-security-report
           path: iac-security-report.txt
-
   secrets:
     runs-on: ubuntu-latest
     steps:
