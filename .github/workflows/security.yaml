@@ -23,7 +23,7 @@ jobs:
         run: |
           bandit -r . -f html -o bandit-report.html || true
       - name: Upload Bandit Report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: bandit-report
           path: bandit-report.html
