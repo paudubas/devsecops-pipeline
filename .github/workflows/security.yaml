@@ -137,7 +137,7 @@ jobs:
              echo "Installing GitLeaks version: $GITLEAKS_VERSION"
 
             # Download the correct binary format (Linux AMD64)
-            curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_amd64.tar.gz
+            curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz
 
             # Extract the binary and move it to a usable path
             tar -xzf gitleaks.tar.gz
