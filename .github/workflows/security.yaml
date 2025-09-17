@@ -231,7 +231,10 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
       - name: Install Conftest
-        uses: instrumenta/conftest-action@v0.3.0
+        run: |
+          curl -L -o conftest https://github.com/open-policy-agent/conftest/releases/latest/download/conftest-linux-amd64
+          chmod +x conftest
+          sudo mv conftest /usr/local/bin/
       - name: Run Conftest on Terraform Files
         run: conftest test terraform/*.tf
 
