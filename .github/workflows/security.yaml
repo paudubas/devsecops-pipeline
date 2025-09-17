@@ -15,52 +15,52 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dependency-check-report
-      - name: Check SCA Report
-        run: |
+      - run: |
           if grep -q "HIGH" dependency-check-report.txt; then
-            echo "High severity dependencies found! Failing the pipeline."
+            echo "High severity dependencies found!"
             exit 1
           fi
-      - name: Download IAC Report
+
+      - name: Download IaC Report
         uses: actions/download-artifact@v4
         with:
           name: iac-security-report
-      - name: Check IaC Security Report
-        run: |
+      - run: |
           if grep -q "FAILED" iac-security-report.txt; then
-            echo "Infrastructure as Code security issues detected! Failing the pipeline."
+            echo "IaC security issues found!"
             exit 1
           fi
+
       - name: Download Secrets Report
         uses: actions/download-artifact@v4
         with:
           name: gitleaks-report
-      - name: Check Secrets Report
-        run: |
+      - run: |
           if [ -s gitleaks-report.json ]; then
-            echo "Secrets detected in the codebase! Failing the pipeline."
+            echo "Secrets detected in codebase!"
             exit 1
           fi
+
       - name: Download SAST Report
         uses: actions/download-artifact@v4
         with:
           name: bandit-report
-      - name: Check SAST Report
-        run: |
+      - run: |
           if grep -q "HIGH" bandit-report.html; then
-            echo "Critical vulnerabilities found in code! Failing the pipeline."
+            echo "Critical vulnerabilities in code!"
             exit 1
           fi
-      - name: Download DAST Report
+
+      - name: Download ZAP Reports
         uses: actions/download-artifact@v4
         with:
-          name: owasp-zap-report
-      - name: Check DAST Report
-        run: |
-          if grep -q "WARN" owasp-zap-report.html; then
-            echo "DAST found warnings! Consider fixing."
+          name: zap-reports
+      - run: |
+          if grep -q "FAIL" zap_report.html; then
+            echo "Critical runtime issues found!"
             exit 1
           fi
+          
   sca:
     runs-on: ubuntu-latest
     steps:
@@ -195,42 +195,20 @@ jobs:
           nohup python app.py > app.log 2>&1 &
           sleep 10
           curl --retry 5 --retry-connrefused --silent --fail http://localhost:8000 || (echo "Flask app failed to start" && exit 1)
-      - name: Pull ZAP Docker Image (Fixes Permission Issues)
-        run: |
-          docker pull ghcr.io/zaproxy/zaproxy:stable
-      - name: OWASP ZAP Scan
+      - name: Run OWASP ZAP Scan
         uses: zaproxy/action-full-scan@v0.12.0
         with:
           target: 'http://localhost:8000'
-          cmd_options: '-J zap_report.json -w zap_md.md -r zap_html.html'
+          cmd_options: '-J zap_report.json -w zap_report.md -r zap_report.html'
           allow_issue_writing: false
-      
-      - name: Debug Report Files
-        run: |
-          echo "Listing all files in the workspace:"
-          ls -lah
-          echo "Searching for OWASP ZAP reports..."
-          find . -name "*zap*"
-
-      - name: Extract ZAP Scan Results
-        run: |
-          if [ -f zap_scan.zip ]; then
-            echo "Extracting ZAP scan results..."
-            unzip zap_scan.zip
-          fi
-
-      - name: Verify OWASP ZAP Report Exists
-        run: |
-          if [ ! -f zap_report.html ]; then
-            echo "Error: OWASP ZAP report not found!"
-            exit 1
-          fi
-
-      - name: Upload OWASP ZAP Report
+      - name: Upload ZAP Reports
         uses: actions/upload-artifact@v4
         with:
-          name: owasp-zap-report
-          path: zap_report.html
+          name: zap-reports
+          path: |
+            zap_report.html
+            zap_report.json
+            zap_report.md
         
 
   container-security:
