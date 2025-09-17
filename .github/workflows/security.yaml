@@ -36,9 +36,12 @@ jobs:
         with:
           name: gitleaks-report
       - run: |
-          if [ -s gitleaks-report.json ]; then
-            echo "Secrets detected in codebase!"
+          ISSUES="$(jq length gitleaks-report.json)"
+          if [ "$ISSUES" -gt 0 ]; then
+            echo "❌ $ISSUES secrets detected in codebase!"
             exit 1
+          else
+            echo "✅ No secrets found"
           fi
 
       - name: Download SAST Report
